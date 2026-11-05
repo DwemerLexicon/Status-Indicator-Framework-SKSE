@@ -91,6 +91,13 @@ static bool GetTargetPos(RE::TESObjectREFR* target, RE::NiPoint3& pos, bool getT
 		if (!getTorsoPos || !GetTorsoPos(actor, pos)) {
 			pos = target->GetLookingAtLocation();
 		}
+	} else if (target->extraList.HasType(RE::ExtraDataType::kAshPileRef)) {
+		// Some ash piles have smoke or glow in their model, which keeps changing the live bounds
+		// GetLookingAtLocation() uses and makes the icon bounce. The base object's bounds are fixed.
+		pos = target->GetPosition();
+		if (const auto* base = target->GetBaseObject()) {
+			pos.z += static_cast<float>(base->boundData.boundMax.z) * target->GetScale();
+		}
 	} else {
 		pos = target->GetLookingAtLocation();
 	}
