@@ -233,11 +233,7 @@ void IconManager::RenderIcons(RE::FloatingQuestMarker* thiz)
 		float iconX = x - totalWidth / 2.0f;
 
 		for (const auto& [iconData, slot] : renderable) {
-			if (iconData->hasColor) {
-				ShowIcon(_pools[iconData->label][slot], iconX, y, distance, depth, iconData->fadeStartDistance, iconData->fadeMaxDistance, settings, *iconData);
-			} else {
-				ShowIcon(_pools[iconData->label][slot], iconX, y, distance, depth, iconData->fadeStartDistance, iconData->fadeMaxDistance, settings);
-			}
+			ShowIcon(_pools[iconData->label][slot], iconX, y, distance, depth, settings, *iconData);
 			iconX += scaledSpacing;
 		}
 
@@ -291,11 +287,7 @@ void IconManager::RenderIcons(RE::FloatingQuestMarker* thiz)
 		float iconX = x - totalWidth / 2.0f;
 
 		for (const auto& [iconData, slot] : renderable) {
-			if (iconData->hasColor) {
-				ShowIcon(_pools[iconData->label][slot], iconX, y, distance, depth, iconData->fadeStartDistance, iconData->fadeMaxDistance, settings, *iconData);
-			} else {
-				ShowIcon(_pools[iconData->label][slot], iconX, y, distance, depth, iconData->fadeStartDistance, iconData->fadeMaxDistance, settings);
-			}
+			ShowIcon(_pools[iconData->label][slot], iconX, y, distance, depth, settings, *iconData);
 			iconX += scaledSpacing;
 		}
 	}
@@ -347,48 +339,28 @@ void IconManager::RenderIcons(RE::FloatingQuestMarker* thiz)
 		float iconX = x - totalWidth / 2.0f;
 
 		for (const auto& [iconData, slot] : renderable) {
-			if (iconData->hasColor) {
-				ShowIcon(_pools[iconData->label][slot], iconX, y, distance, depth, iconData->fadeStartDistance, iconData->fadeMaxDistance, settings, *iconData);
-			} else {
-				ShowIcon(_pools[iconData->label][slot], iconX, y, distance, depth, iconData->fadeStartDistance, iconData->fadeMaxDistance, settings);
-			}
+			ShowIcon(_pools[iconData->label][slot], iconX, y, distance, depth, settings, *iconData);
 			iconX += scaledSpacing;
 		}
 	}
 }
 
-void IconManager::ShowIcon(RE::GFxValue& clip, float x, float y, float distance, float depth, float fadeStart, float fadeMax, const Config::Settings& settings)
+void IconManager::ShowIcon(RE::GFxValue& clip, float x, float y, float distance, float depth, const Config::Settings& settings, const Config::IconData& iconData)
 {
 	if (!clip.IsDisplayObject()) {
 		return;
 	}
 
-	const float scale = CalculateScale(depth, settings);
+	const float baseScale = iconData.fixedSize ? settings.scaleMax : CalculateScale(depth, settings);
+	const float scale = baseScale * iconData.scale;
+	const float alpha = CalculateAlpha(distance, iconData.fadeStartDistance, iconData.fadeMaxDistance) * (iconData.opacity / 100.0f);
 
 	RE::GFxValue::DisplayInfo displayInfo;
 	clip.GetDisplayInfo(&displayInfo);
 	displayInfo.SetX(x);
 	displayInfo.SetY(y);
 	displayInfo.SetRotation(0.0);
-	displayInfo.SetAlpha(CalculateAlpha(distance, fadeStart, fadeMax));
-	displayInfo.SetScale(scale, scale);
-	clip.SetDisplayInfo(displayInfo);
-}
-
-void IconManager::ShowIcon(RE::GFxValue& clip, float x, float y, float distance, float depth, float fadeStart, float fadeMax, const Config::Settings& settings, const Config::IconData& iconData)
-{
-	if (!clip.IsDisplayObject()) {
-		return;
-	}
-
-	const float scale = CalculateScale(depth, settings);
-
-	RE::GFxValue::DisplayInfo displayInfo;
-	clip.GetDisplayInfo(&displayInfo);
-	displayInfo.SetX(x);
-	displayInfo.SetY(y);
-	displayInfo.SetRotation(0.0);
-	displayInfo.SetAlpha(CalculateAlpha(distance, fadeStart, fadeMax));
+	displayInfo.SetAlpha(alpha);
 	displayInfo.SetScale(scale, scale);
 	clip.SetDisplayInfo(displayInfo);
 
